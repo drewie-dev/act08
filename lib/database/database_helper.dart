@@ -9,7 +9,7 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('card_organizer.db');
+    _database = await _initDB('card_organizer_v2.db');
     return _database!;
   }
 
@@ -49,12 +49,11 @@ class DatabaseHelper {
     ''');
 
     await _prepopulateFolders(db);
-
     await _prepopulateCards(db);
   }
 
   Future<void> _prepopulateFolders(Database db) async {
-    final suits = ['Hearts', 'Spades'];
+    final suits = ['Hearts', 'Spades']; // ✅ only 2 suits
 
     for (final suit in suits) {
       await db.insert('folders', {
@@ -65,11 +64,22 @@ class DatabaseHelper {
   }
 
   Future<void> _prepopulateCards(Database db) async {
-    final folders = await db.query('folders');
+    final folders = await db.query('folders', orderBy: 'id ASC');
 
-    final ranks = [
-      'Ace', '2', '3', '4', '5', '6', '7',
-      '8', '9', '10', 'Jack', 'Queen', 'King'
+    final ranks = <String>[
+      'Ace',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '10',
+      'Jack',
+      'Queen',
+      'King',
     ];
 
     for (final f in folders) {
@@ -80,33 +90,51 @@ class DatabaseHelper {
         await db.insert('cards', {
           'card_name': rank,
           'suit': suit,
-          'image_url': _assetPathFor(suit, rank),
+          // ✅ URL so Image.network works
+          'image_url': _cardImageUrl(rank, suit),
           'folder_id': folderId,
         });
       }
     }
   }
 
-  String _assetPathFor(String suit, String rank) {
-    Map<String, String> rankMap = {
-      'Ace': 'A',
-      '2': '2',
-      '3': '3',
-      '4': '4',
-      '5': '5',
-      '6': '6',
-      '7': '7',
-      '8': '8',
-      '9': '9',
-      '10': '10',
-      'Jack': 'J',
-      'Queen': 'Q',
-      'King': 'K'
-    };
+  /// Returns a working image URL from deckofcardsapi.com
+  /// Examples:
+  /// Ace Hearts  -> AH.png
+  /// 10 Hearts   -> 10H.png
+  /// King Spades -> KS.png
+  String _cardImageUrl(String rank, String suit) {
+    String rankCode;
+    switch (rank) {
+      case 'Ace':
+        rankCode = 'A';
+        break;
+      case 'King':
+        rankCode = 'K';
+        break;
+      case 'Queen':
+        rankCode = 'Q';
+        break;
+      case 'Jack':
+        rankCode = 'J';
+        break;
+      default:
+        rankCode = rank; // "2".."10"
+    }
 
-    String r = rankMap[rank]!;
-    String s = suit == 'Hearts' ? 'heart' : 'spade';
+    String suitCode;
+    switch (suit) {
+      case 'Hearts':
+        suitCode = 'H';
+        break;
+      case 'Spades':
+        suitCode = 'S';
+        break;
+      // (we only use Hearts/Spades, but fallback safely)
+      default:
+        suitCode = 'H';
+    }
 
-    return 'assets/images/${r}_${s}.png';
+    return 'https://deckofcardsapi.com/static/img/$rankCode$suitCode.png';
   }
 }
