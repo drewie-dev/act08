@@ -53,7 +53,7 @@ class DatabaseHelper {
   }
 
   Future<void> _prepopulateFolders(Database db) async {
-    final suits = ['Hearts', 'Spades']; // ✅ only 2 suits
+    final suits = ['Hearts', 'Spades']; 
 
     for (final suit in suits) {
       await db.insert('folders', {
@@ -90,7 +90,6 @@ class DatabaseHelper {
         await db.insert('cards', {
           'card_name': rank,
           'suit': suit,
-          // ✅ URL so Image.network works
           'image_url': _cardImageUrl(rank, suit),
           'folder_id': folderId,
         });
@@ -98,11 +97,6 @@ class DatabaseHelper {
     }
   }
 
-  /// Returns a working image URL from deckofcardsapi.com
-  /// Examples:
-  /// Ace Hearts  -> AH.png
-  /// 10 Hearts   -> 10H.png
-  /// King Spades -> KS.png
   String _cardImageUrl(String rank, String suit) {
     String rankCode;
     switch (rank) {
@@ -119,7 +113,7 @@ class DatabaseHelper {
         rankCode = 'J';
         break;
       default:
-        rankCode = rank; // "2".."10"
+        rankCode = rank; 
     }
 
     String suitCode;
@@ -130,7 +124,6 @@ class DatabaseHelper {
       case 'Spades':
         suitCode = 'S';
         break;
-      // (we only use Hearts/Spades, but fallback safely)
       default:
         suitCode = 'H';
     }
